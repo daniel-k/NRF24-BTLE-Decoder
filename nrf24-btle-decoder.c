@@ -47,6 +47,8 @@ Steve Markgraf, RTL-SDR Library - https://github.com/steve-m/librtlsdr
 int32_t g_threshold; // Quantization threshold
 int g_srate; // sample rate downconvert ratio
 
+bool verbose = false;
+
 /* Ring Buffer */
 #define RB_SIZE 1000
 int rb_head=-1;
@@ -312,13 +314,24 @@ bool DecodeNRFPacket(int32_t sample, int srate, int packet_length){
 
 	/* NRF24L01+ packet found, dump information */
 	if (packet_crc==calced_crc){
-		printf("%ld.%06ld ", (long)tv.tv_sec, tv.tv_usec);
-		printf("NRF24 Packet start sample %"PRId32", Address: 0x%08"PRIX64" ",sample,packet_addr_l);
-		printf("length:%d, pid:%d, no_ack:%d, CRC:0x%04X data:",packet_length,(pcf&0b110)>>1,pcf&0b1,packet_crc);
-		for (c=0;c<packet_length;c++) printf("%02X ",packet_data[c]);
-		printf("\n");
+		if(verbose) {
+			printf("%ld.%06ld ", (long)tv.tv_sec, tv.tv_usec);
+			printf("NRF24 Packet start sample %"PRId32", Address: 0x%08"PRIX64" ",sample,packet_addr_l);
+			printf("length:%d, pid:%d, no_ack:%d, CRC:0x%04X data:",packet_length,(pcf&0b110)>>1,pcf&0b1,packet_crc);
+			for (c=0;c<packet_length;c++) printf("%02X ",packet_data[c]);
+			printf("\n");
+		} else {
+			printf("%ld.%06ld, ", (long)tv.tv_sec, tv.tv_usec);
+			printf("address: %08"PRIX64", ", packet_addr_l);
+			printf("length: %d, pid: %d, no_ack: %d, data: ",packet_length,(pcf&0b110)>>1,pcf&0b1);
+			for (c=0;c<packet_length;c++) printf("%02X ",packet_data[c]);
+			printf("\n");
+		}
+
 		return true;
-	} else return false;
+	}
+
+	return false;
 }
 
 
@@ -352,7 +365,8 @@ void usage(void)
 		"\t[-t packet_type (nrf or btle). defaults to nrf.] \n"
 		"\t[-d downsample_rate (1 for 2mbps , 2 for 1mbps, 8 for 256kbps), default to 2]\n"
 		"\t    using packet type btle implies -d 2\n"
-		"\t[-l len (1-32). Set a fixed packet length] \n");
+		"\t[-l len (1-32). Set a fixed packet length] \n"
+		"\t[-v] Be more verbose when printing nrf24 packets");
 	exit(1);
 }
 
@@ -370,8 +384,11 @@ int main (int argc, char**argv){
 		_setmode(_fileno(stdin), _O_BINARY);
 	#endif /* defined(WIN32) */
 
-	printf("nrf24-btle-decoder, decode NRF24L01+ and Bluetooth Low Energy packets using RTL-SDR v0.4\n\n");
-	while ((opt = getopt(argc, argv, "t:d:l:h")) != -1) {
+	if(verbose) {
+		printf("nrf24-btle-decoder, decode NRF24L01+ and Bluetooth Low Energy packets using RTL-SDR v0.4\n\n");
+	}
+
+	while ((opt = getopt(argc, argv, "t:d:l:h:v")) != -1) {
 		switch (opt) {
 		case 't':
 			if (strcmp("nrf", optarg) == 0)	decode_type = 1;
@@ -380,6 +397,9 @@ int main (int argc, char**argv){
 				fprintf (stderr, "Unknown packet_type - %s.\n\n", optarg);
 				optfail=1;
 			}
+			break;
+		case 'v':
+			verbose = true;
 			break;
 		case 'd':
 			srate=(int)atoi(optarg);
