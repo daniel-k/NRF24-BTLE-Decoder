@@ -267,9 +267,11 @@ bool DecodeBTLEPacket(int32_t sample, int srate){
 	} else return false;
 }
 
+
+static struct timeval tv;
+
 bool DecodeNRFPacket(int32_t sample, int srate, int packet_length){
 	int c,t;
-	struct timeval tv;
 	uint8_t tmp_buf[10];
 	uint8_t packet_data[500];
 	uint8_t packet_packed[50];
@@ -310,7 +312,6 @@ bool DecodeNRFPacket(int32_t sample, int srate, int packet_length){
 
 	/* NRF24L01+ packet found, dump information */
 	if (packet_crc==calced_crc){
-		gettimeofday(&tv, NULL);
 		printf("%ld.%06ld ", (long)tv.tv_sec, tv.tv_usec);
 		printf("NRF24 Packet start sample %"PRId32", Address: 0x%08"PRIX64" ",sample,packet_addr_l);
 		printf("length:%d, pid:%d, no_ack:%d, CRC:0x%04X data:",packet_length,(pcf&0b110)>>1,pcf&0b1,packet_crc);
@@ -322,6 +323,9 @@ bool DecodeNRFPacket(int32_t sample, int srate, int packet_length){
 
 
 bool DecodePacket(int decode_type, int32_t sample, int srate, int packet_length){
+
+	gettimeofday(&tv, NULL);
+
 	bool packet_detected=false;
 	g_srate=srate;
 	g_threshold = ExtractThreshold();
