@@ -259,7 +259,7 @@ bool DecodeBTLEPacket(int32_t sample, int srate){
 	if (packet_crc==calced_crc){
 		gettimeofday(&tv, NULL);
 		printf("%ld.%06ld ", (long)tv.tv_sec, tv.tv_usec);
-		printf("BTLE Packet start sample %"PRId32", Threshold:%"PRId32", Address: 0x%08"PRIX64", CRC:0x%06X ",sample,g_threshold,packet_addr_l, packet_crc);
+		printf("BTLE Packet start sample %"PRId32", Threshold:%5"PRId32", Address: 0x%08"PRIX64", CRC:0x%06X ",sample,g_threshold,packet_addr_l, packet_crc);
 		printf("length:%d data:",packet_length);
 		for (c=0;c<packet_length+2;c++) printf("%02X ",SwapBits(packet_data[c]));
 		printf("\n");
@@ -312,7 +312,7 @@ bool DecodeNRFPacket(int32_t sample, int srate, int packet_length){
 	if (packet_crc==calced_crc){
 		gettimeofday(&tv, NULL);
 		printf("%ld.%06ld ", (long)tv.tv_sec, tv.tv_usec);
-		printf("NRF24 Packet start sample %"PRId32", Threshold:%"PRId32", Address: 0x%08"PRIX64" ",sample,g_threshold,packet_addr_l);
+		printf("NRF24 Packet start sample %"PRId32", Address: 0x%08"PRIX64" ",sample,packet_addr_l);
 		printf("length:%d, pid:%d, no_ack:%d, CRC:0x%04X data:",packet_length,(pcf&0b110)>>1,pcf&0b1,packet_crc);
 		for (c=0;c<packet_length;c++) printf("%02X ",packet_data[c]);
 		printf("\n");
